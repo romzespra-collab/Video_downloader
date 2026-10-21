@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.2  (PySide6 / Qt6)
+Версия: 2.3  (PySide6 / Qt6)
+
+Изменения 2.3:
+- 🔄 Обновление модуля gh_update 1.1.1: «Что нового» — из журнала проекта (шапка этого файла).
+- 🧹 Из репозитория убраны случайно попавшие __pycache__/*.pyc.
 
 Изменения 2.2:
 - 🔄 Обновление с GitHub (общий модуль gh_update 1.1.0): ⚙ → «🔄 Обновление с GitHub…» —
@@ -247,7 +251,7 @@ Video Downloader Mini — video_downloader.pyw
     python -m pip install -U PySide6 yt-dlp
 """
 
-APP_VERSION = "2.2"
+APP_VERSION = "2.3"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
@@ -2096,7 +2100,7 @@ class VideoDownloaderWindow(QMainWindow):
         target = gh_update.UpdateTarget(
             owner="romzespra-collab", repo="Video_downloader", name="video_downloader",
             current=APP_VERSION, app_dir=str(_app_dir()), main_file="video_downloader.pyw",
-            changelog="", where="⚙ → 🔄 Обновление с GitHub")
+            changelog="video_downloader.pyw", where="⚙ → 🔄 Обновление с GitHub")
         dlg = QDialog(self)
         dlg.setWindowTitle(f"{APP_NAME} — обновление с GitHub")
         dlg.resize(960, 460)
