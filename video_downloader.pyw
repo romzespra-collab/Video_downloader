@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Video Downloader Mini
-Версия: 2.1  (PySide6 / Qt6)
+Video Downloader Mini — video_downloader.pyw
+Версия: 2.2  (PySide6 / Qt6)
+
+Изменения 2.2:
+- 🔄 Обновление с GitHub (общий модуль gh_update 1.1.0): ⚙ → «🔄 Обновление с GitHub…» —
+  токен «только чтение», ветка, автопроверка (через 30 с после запуска и каждые N ч),
+  скачивание с анимацией, установка поверх (yt-dlp.exe, ffmpeg, логи и загрузки не
+  трогаются; заменённые файлы — в backup/v<версия>), перезапуск. Есть новая версия —
+  кнопка «⬆ X.Y» рядом с ⚙ и пометка в меню. Настройки — в QSettings, как остальные.
+- 📄 Главный файл переименован: video_downloader_app_v2.1.pyw → video_downloader.pyw
+  (имя с номером версии ломало обновление). Версия — только внутри (APP_VERSION).
 
 Изменения 2.1:
 - 🛡 Проверка «без звука» больше не трогает чужие файлы: проверяются только
@@ -238,7 +247,7 @@ Video Downloader Mini
     python -m pip install -U PySide6 yt-dlp
 """
 
-APP_VERSION = "2.1"
+APP_VERSION = "2.2"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
@@ -1840,6 +1849,8 @@ class VideoDownloaderWindow(QMainWindow):
 
         self._build_ui()
         self._restore_style()
+        self._quitting = False
+        self.upd_dialog = self._build_update_dialog()
 
         # Авто-докачка недостающих зависимостей рядом с программой (Win).
         self._dep_worker = None
@@ -1874,6 +1885,12 @@ class VideoDownloaderWindow(QMainWindow):
         self.style_btn.setMenu(self._build_style_menu())
         # Убираем стрелку у меню
         self.style_btn.setStyleSheet("QToolButton::menu-indicator { image: none; width: 0; }")
+        self.upd_btn = QPushButton("⬆")
+        self.upd_btn.setFixedHeight(32)
+        uf = self.upd_btn.font(); uf.setBold(True); self.upd_btn.setFont(uf)
+        self.upd_btn.clicked.connect(self.show_update)
+        self.upd_btn.hide()
+        header.addWidget(self.upd_btn)
         header.addWidget(self.style_btn)
         root.addLayout(header)
 
@@ -2034,6 +2051,12 @@ class VideoDownloaderWindow(QMainWindow):
         menu.addAction(update_ffmpeg_action)
 
         menu.addSeparator()
+        self.upd_action = QAction("🔄 Обновление с GitHub…", self)
+        self.upd_action.setToolTip("Проверить и поставить новую версию программы из репозитория Video_downloader")
+        self.upd_action.triggered.connect(self.show_update)
+        menu.addAction(self.upd_action)
+
+        menu.addSeparator()
         open_log_action = QAction("📄 Открыть текущий лог", self)
         open_log_action.triggered.connect(self.open_log_file)
         menu.addAction(open_log_action)
@@ -2047,6 +2070,82 @@ class VideoDownloaderWindow(QMainWindow):
         menu.addAction(about_action)
 
         return menu
+
+    # ----- обновление с GitHub (общий модуль gh_update) -----
+    def _build_update_dialog(self):
+        """Окно «⚙ → 🔄 Обновление с GitHub…» с общей вкладкой gh_update_qt.UpdatePage.
+        Создаётся при старте и держится скрытым — так автопроверка идёт, даже если окно
+        ни разу не открывали. Нет файлов gh_update*.py рядом — пункт меню неактивен."""
+        try:
+            import gh_update
+            import gh_update_qt
+        except Exception as e:
+            logging.warning("обновление с GitHub недоступно: %s", e)
+            self.upd_action.setEnabled(False)
+            self.upd_action.setText("🔄 Обновление с GitHub (нет gh_update*.py рядом)")
+            return None
+
+        def colors():   # цвета текущей темы (палитра приложения) — смена темы подхватывается сама
+            pal = QApplication.palette()
+            return {"accent": pal.color(QPalette.ColorRole.Highlight).name(),
+                    "text": pal.color(QPalette.ColorRole.WindowText).name(),
+                    "dim": pal.color(QPalette.ColorRole.PlaceholderText).name(),
+                    "panel": pal.color(QPalette.ColorRole.Base).name(),
+                    "border": pal.color(QPalette.ColorRole.Mid).name()}
+        gh_update_qt.set_colors(colors)
+        target = gh_update.UpdateTarget(
+            owner="romzespra-collab", repo="Video_downloader", name="video_downloader",
+            current=APP_VERSION, app_dir=str(_app_dir()), main_file="video_downloader.pyw",
+            changelog="", where="⚙ → 🔄 Обновление с GitHub")
+        dlg = QDialog(self)
+        dlg.setWindowTitle(f"{APP_NAME} — обновление с GitHub")
+        dlg.resize(960, 460)
+        lay = QVBoxLayout(dlg)
+        lay.setContentsMargins(0, 0, 0, 0)
+        self.upd_page = gh_update_qt.UpdatePage(target, self._upd_get, self._upd_set,
+                                                on_quit=self._quit_for_update, log=logging.info)
+        self.upd_page.box.setFixedWidth(430)   # подписи кнопок не обрезаются при крупном шрифте
+        self.upd_page.box.available.connect(self._update_available)
+        lay.addWidget(self.upd_page)
+        return dlg
+
+    def _upd_get(self):
+        s = self.settings
+        try:
+            every = int(s.value("upd_every_h", 12) or 12)
+        except (TypeError, ValueError):
+            every = 12
+        return {"token": str(s.value("upd_token", "") or ""),
+                "auto": s.value("upd_auto", True, type=bool),
+                "branch": str(s.value("upd_branch", "main") or "main"),
+                "every_h": every}
+
+    def _upd_set(self, c):
+        s = self.settings
+        s.setValue("upd_token", c["token"])
+        s.setValue("upd_auto", bool(c["auto"]))
+        s.setValue("upd_branch", c["branch"] or "main")
+        s.setValue("upd_every_h", int(c.get("every_h") or 12))
+        s.sync()
+
+    def show_update(self):
+        if self.upd_dialog is not None:
+            self.upd_dialog.show()
+            self.upd_dialog.raise_()
+            self.upd_dialog.activateWindow()
+
+    def _update_available(self, ver):
+        """На GitHub новая версия: кнопка «⬆ X.Y» в заголовке и пометка в меню ⚙."""
+        self.upd_btn.setText(f"⬆ {ver}")
+        self.upd_btn.setToolTip(f"Есть новая версия {ver} (у вас {APP_VERSION}) — открыть «Обновление с GitHub»")
+        self.upd_btn.show()
+        self.upd_action.setText(f"🔄 Обновление с GitHub — есть {ver}…")
+
+    def _quit_for_update(self):
+        """Новая копия уже запущена — закрыться полностью, без вопроса «прервать?»."""
+        self._quitting = True
+        self.close()
+        QApplication.quit()
 
     def show_about(self):
         text = (
@@ -2576,7 +2675,7 @@ class VideoDownloaderWindow(QMainWindow):
 
     def closeEvent(self, event):
         busy = self.is_downloading or self._dep_worker is not None
-        if busy:
+        if busy and not self._quitting:
             ans = QMessageBox.question(
                 self, "Выход", "Идёт загрузка. Прервать и выйти?",
                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
@@ -2821,6 +2920,11 @@ def main():
     logging.info("main enter")
     refresh_dependencies()
     app = QApplication(sys.argv)
+    try:  # после обновления: дождаться, пока закроется старая копия
+        import gh_update
+        gh_update.wait_previous(sys.argv)
+    except ImportError:
+        pass
     app.setApplicationName(APP_NAME)
     app.setApplicationVersion(APP_VERSION)
     default_style_name = app.style().objectName() if app.style() else ""

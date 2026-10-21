@@ -1,0 +1,15 @@
+# сборка и кэш
+__pycache__/
+*.pyc
+build/
+dist/
+# архивы — только в release/
+*.zip
+!release/*.zip
+# рядом с программой (создаются сами)
+logs/
+downloads/
+backup/
+ffmpeg/
+yt-dlp.exe
+*.log
