@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.3  (PySide6 / Qt6)
+Версия: 2.4  (PySide6 / Qt6)
+
+Изменения 2.4:
+- 🎨 Минимальный QSS на всё приложение, строится из палитры текущей темы и пересобирается
+  при каждой смене темы: рамки и заголовки групп (заголовки «Ссылка», «Доступ к GitHub»,
+  «Что нового в X» больше не обрезаются), поля ввода (фон и цвет текста вместе), полоса прогресса.
 
 Изменения 2.3:
 - 🔄 Обновление модуля gh_update 1.1.1: «Что нового» — из журнала проекта (шапка этого файла).
@@ -251,7 +256,7 @@ Video Downloader Mini — video_downloader.pyw
     python -m pip install -U PySide6 yt-dlp
 """
 
-APP_VERSION = "2.3"
+APP_VERSION = "2.4"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
@@ -1315,20 +1320,43 @@ def _palette_role(name):
     return getattr(QPalette.ColorRole, name)
 
 
+def _app_qss(pal):
+    """Минимальный QSS из палитры текущей темы: рамки и заголовки QGroupBox (без QSS Fusion
+    обрезает заголовки), поля ввода (фон и цвет текста — в одном правиле), полоса прогресса.
+    Цвета — только из палитры; строится заново при каждой смене темы."""
+    R = QPalette.ColorRole
+
+    def c(role):
+        return pal.color(role).name()
+    win, txt = pal.color(R.Window), pal.color(R.WindowText)
+    k = 0.3  # рамка — смесь фона и текста темы: видна и на чёрном (High Contrast), и на белом
+    border = QColor(round(win.red() + (txt.red() - win.red()) * k), round(win.green() + (txt.green() - win.green()) * k),
+                    round(win.blue() + (txt.blue() - win.blue()) * k)).name()
+    return f"""
+QGroupBox {{ border: 1px solid {border}; border-radius: 6px; margin-top: 1.4em; padding-top: 6px; }}
+QGroupBox::title {{ subcontrol-origin: margin; subcontrol-position: top left; left: 10px; padding: 0 4px;
+    color: {c(R.WindowText)}; }}
+QLineEdit, QPlainTextEdit {{ background: {c(R.Base)}; color: {c(R.Text)}; border: 1px solid {border};
+    border-radius: 4px; padding: 3px 5px; selection-background-color: {c(R.Highlight)};
+    selection-color: {c(R.HighlightedText)}; }}
+QLineEdit:focus, QPlainTextEdit:focus {{ border-color: {c(R.Highlight)}; }}
+QLineEdit:disabled, QPlainTextEdit:disabled {{ color: {c(R.PlaceholderText)}; }}
+QProgressBar {{ background: {c(R.Base)}; color: {c(R.Text)}; border: 1px solid {border}; border-radius: 4px;
+    text-align: center; min-height: 18px; }}
+QProgressBar::chunk {{ background: {c(R.Highlight)}; border-radius: 3px; }}
+"""
+
+
 def apply_style(app, style_name, default_style_name, default_palette):
-    """Применить выбранный стиль ко всему приложению."""
+    """Применить выбранный стиль ко всему приложению: стиль Qt + палитра + QSS из палитры."""
     if style_name == SYSTEM_DEFAULT:
         if default_style_name:
             app.setStyle(default_style_name)
         app.setPalette(default_palette)
-        return
-
-    if style_name in QStyleFactory.keys():
+    elif style_name in QStyleFactory.keys():
         app.setStyle(style_name)
         app.setPalette(app.style().standardPalette())
-        return
-
-    if style_name in CUSTOM_PALETTES:
+    elif style_name in CUSTOM_PALETTES:
         if "Fusion" in QStyleFactory.keys():
             app.setStyle("Fusion")
         spec = CUSTOM_PALETTES[style_name]
@@ -1347,6 +1375,7 @@ def apply_style(app, style_name, default_style_name, default_palette):
         pal.setColor(QPalette.ColorRole.Dark,     base.darker(150))
         pal.setColor(QPalette.ColorRole.Shadow,   base.darker(200))
         app.setPalette(pal)
+    app.setStyleSheet(_app_qss(app.palette()))
 
 
 def make_gear_icon(size=18, fg="#404040"):

@@ -1,6 +1,6 @@
 # Video_downloader
 
-**Video Downloader Mini v2.3** — скачивание видео и звука (MP3) по ссылке на базе yt-dlp (PySide6 / Qt6, Windows 10/11).
+**Video Downloader Mini v2.4** — скачивание видео и звука (MP3) по ссылке на базе yt-dlp (PySide6 / Qt6, Windows 10/11).
 
 ## Запуск
 Двойной клик по `video_downloader.pyw`. yt-dlp.exe и ffmpeg программа скачает рядом с собой сама (ffmpeg — с согласия).
