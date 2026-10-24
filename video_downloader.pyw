@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.4  (PySide6 / Qt6)
+Версия: 2.5  (PySide6 / Qt6)
+
+Изменения 2.5:
+- 🔄 Обновление: модуль gh_update 1.1.3 — в облаке анимации значок GitHub над надписью;
+  архив докачивается при обрыве.
 
 Изменения 2.4:
 - 🎨 Минимальный QSS на всё приложение, строится из палитры текущей темы и пересобирается
@@ -256,7 +260,7 @@ Video Downloader Mini — video_downloader.pyw
     python -m pip install -U PySide6 yt-dlp
 """
 
-APP_VERSION = "2.4"
+APP_VERSION = "2.5"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
