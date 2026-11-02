@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.6  (PySide6 / Qt6)
+Версия: 2.7  (PySide6 / Qt6)
+
+Изменения 2.7:
+- 🔄 Обновление с GitHub: общий модуль gh_update 1.3.3 (обрыв ответа GitHub — понятная ошибка,
+  при сбое замены не остаётся *.upd, свои файлы пользователя не стираются, та же версия после
+  установки не предлагается снова).
 
 Изменения 2.6:
 - 🔄 Обновление с GitHub (gh_update 1.2.0): старый код, которого нет в новой версии, стирается;
@@ -264,7 +269,7 @@ Video Downloader Mini — video_downloader.pyw
     python -m pip install -U PySide6 yt-dlp
 """
 
-APP_VERSION = "2.6"
+APP_VERSION = "2.7"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
