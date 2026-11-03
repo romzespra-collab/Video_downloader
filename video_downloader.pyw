@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.7  (PySide6 / Qt6)
+Версия: 2.8  (PySide6 / Qt6)
+
+Изменения 2.8:
+- 🔄 Обновление — только Python: убрано обновление собранного exe (общий модуль gh_update 1.4.0),
+  GitHub больше не собирает exe. Обновление с GitHub — только для программы на Python;
+  собранный exe сам не обновляется.
 
 Изменения 2.7:
 - 🔄 Обновление с GitHub: общий модуль gh_update 1.3.3 (обрыв ответа GitHub — понятная ошибка,
@@ -269,7 +274,7 @@ Video Downloader Mini — video_downloader.pyw
     python -m pip install -U PySide6 yt-dlp
 """
 
-APP_VERSION = "2.7"
+APP_VERSION = "2.8"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
