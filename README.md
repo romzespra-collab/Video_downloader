@@ -1,6 +1,6 @@
 # Video_downloader
 
-**Video Downloader Mini v2.10** — скачивание видео и звука (MP3) по ссылке на базе yt-dlp (PySide6 / Qt6, Windows 10/11).
+**Video Downloader Mini v2.11** — скачивание видео и звука (MP3) по ссылке на базе yt-dlp (PySide6 / Qt6, Windows 10/11).
 
 ## Запуск
 Двойной клик по `video_downloader.pyw`. yt-dlp.exe и ffmpeg программа скачает рядом с собой сама (ffmpeg — с согласия).
@@ -19,6 +19,6 @@ Video_downloader — кнопка «?» покажет по шагам, как �
 
 ## Файлы
 - `video_downloader.pyw` — программа (журнал изменений — в начале файла)
-- `gh_update.py`, `gh_update_qt.py`, `gh_update_help.py` — обновление с GitHub (общий модуль 1.4.1, только Python)
+- `gh_update.py`, `gh_update_qt.py`, `gh_update_help.py` — обновление с GitHub (общий модуль 1.4.2, только Python)
 - `test_gh_update.pyw` — тесты модуля обновления (без сети)
 - `release/video_downloader_vX.Y.zip` — архив последней версии
