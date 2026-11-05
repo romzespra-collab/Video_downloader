@@ -1,7 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.9  (PySide6 / Qt6)
+Версия: 2.10  (PySide6 / Qt6)
+
+Изменения 2.10:
+- 🧹 Python 3.12+: код очищен автоправкой ruff (кодировка в шапке), поведение не менялось.
 
 Изменения 2.9:
 - 🐍 Python 3.12+: убран «Win7-режим» — поиск yt-dlp_win7.exe и встроенного в exe (sys._MEIPASS)
@@ -280,7 +282,7 @@ Video Downloader Mini — video_downloader.pyw
     python -m pip install -U "PySide6>=6.10.1" yt-dlp   (Python 3.12+)
 """
 
-APP_VERSION = "2.9"
+APP_VERSION = "2.10"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
