@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.8  (PySide6 / Qt6)
+Версия: 2.9  (PySide6 / Qt6)
+
+Изменения 2.9:
+- 🐍 Python 3.12+: убран «Win7-режим» — поиск yt-dlp_win7.exe и встроенного в exe (sys._MEIPASS)
+  yt-dlp, подпись «🪟 Win7-режим». На Windows, как и раньше, качает локальный yt-dlp.exe рядом
+  с программой (не зависит от установленного на ПК); на Linux/macOS — модуль yt_dlp.
+  Общий модуль gh_update 1.4.1.
 
 Изменения 2.8:
 - 🔄 Обновление — только Python: убрано обновление собранного exe (общий модуль gh_update 1.4.0),
@@ -271,10 +277,10 @@ Video Downloader Mini — video_downloader.pyw
 - MP3 320 kbps (при наличии ffmpeg).
 
 Зависимости:
-    python -m pip install -U PySide6 yt-dlp
+    python -m pip install -U "PySide6>=6.10.1" yt-dlp   (Python 3.12+)
 """
 
-APP_VERSION = "2.8"
+APP_VERSION = "2.9"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
@@ -927,17 +933,14 @@ def ensure_ffmpeg_in_path():
 FFMPEG_DIR = None
 
 
-# ---------------- Поиск bundled yt-dlp.exe (для Win7-режима) ----------------
+# ---------------- Поиск локального yt-dlp.exe рядом с программой ----------------
 
 def _ytdlp_names():
-    return ("yt-dlp_win7.exe", "yt-dlp.exe", "yt-dlp_win7", "yt-dlp")
+    return ("yt-dlp.exe", "yt-dlp")
 
 
 def _ytdlp_local_bases():
     bases = []
-    meipass = getattr(sys, "_MEIPASS", None)
-    if meipass:
-        bases.append(Path(meipass))
     bases.append(_app_dir())
     bases.append(_app_dir() / "yt-dlp")
     bases.append(_app_dir() / "bin")
@@ -993,7 +996,7 @@ def is_local_ytdlp_exe(path):
 
 
 def find_ytdlp_exe():
-    """Ищет standalone yt-dlp[_win7] только рядом с текущим приложением.
+    """Ищет standalone yt-dlp только рядом с текущим приложением.
 
     На Windows PATH/WinGet/глобальные Python Scripts специально игнорируются:
     приложение должно само скачать yt-dlp.exe рядом с собой и работать только
@@ -2424,10 +2427,7 @@ class VideoDownloaderWindow(QMainWindow):
         if YTDLP_EXE is not None:
             name = Path(YTDLP_EXE).name
             local_mark = "локальный" if is_local_ytdlp_exe(YTDLP_EXE) else "внешний/PATH"
-            if "win7" in name.lower():
-                self.yl_lbl.setText(f"🪟 Win7-режим: {name} ({local_mark}, subprocess) ← {YTDLP_EXE}")
-            else:
-                self.yl_lbl.setText(f"✓ yt-dlp.exe ({local_mark}, subprocess) ← {YTDLP_EXE}")
+            self.yl_lbl.setText(f"✓ {name} ({local_mark}, subprocess) ← {YTDLP_EXE}")
             self.yl_lbl.setStyleSheet("color: #2a6acd;")
         elif can_use_python_ytdlp_module():
             ver = getattr(getattr(yt_dlp, "version", None), "__version__", "?")
@@ -2670,7 +2670,7 @@ class VideoDownloaderWindow(QMainWindow):
             "<b>Что искать:</b> в колонке RESOLUTION строки <code>1920x1080</code>, "
             "<code>1920x804</code>, <code>1280x720</code> и т.д. "
             "Если максимум = <code>640x360</code> или ниже — значит yt-dlp не видит "
-            "высокие форматы (нужно обновить yt-dlp / yt-dlp_win7.exe). "
+            "высокие форматы (нужно обновить yt-dlp). "
             "В колонке VCODEC: <code>avc1</code> = H.264 (TV-совместимо), "
             "<code>av01</code> = AV1 (старые TV не поддерживают), "
             "<code>vp9</code> = VP9. В ACODEC: <code>mp4a</code> = AAC (TV ok), "
@@ -2830,8 +2830,8 @@ class VideoDownloaderWindow(QMainWindow):
         self.progress.setValue(0)
         self.set_status("Подготовка...")
 
-        # Выбор движка: standalone yt-dlp.exe (Win7-режим) приоритетнее,
-        # потому что на Win7 модуль yt_dlp устарел и YouTube не работает.
+        # Выбор движка: на Windows — только локальный yt-dlp.exe рядом с программой
+        # (не зависим от того, что установлено на ПК); на Linux/macOS без него — модуль yt_dlp.
         if YTDLP_EXE is not None:
             self.worker = DownloadWorkerExe(
                 url=url,
