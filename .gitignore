@@ -13,6 +13,10 @@ backup/
 ffmpeg/
 yt-dlp.exe
 *.log
+# временные, резервные копии и копии испорченных файлов (общие модули)
+*.bak
+*.bad-*
+*.tmp
 # значок программы (общий модуль app_icon) — выбор пользователя
 app_icon.json
 app_icon.json.bak

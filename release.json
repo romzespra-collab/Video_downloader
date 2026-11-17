@@ -1,0 +1,17 @@
+{
+  "repo": "romzespra-collab/Video_downloader",
+  "programs": [
+    {
+      "name": "video_downloader",
+      "dir": "",
+      "files": [
+        ["video_downloader.pyw", "APP_VERSION = \"{v}\""],
+        ["video_downloader.pyw", "Версия: {v}"]
+      ],
+      "headers": false,
+      "changelog": {"file": "video_downloader.pyw", "before": "re:^Изменения \\d+(?:\\.\\d+)*:",
+                    "template": "Изменения {v}:\n- {msg}\n\n"},
+      "allow_in_zip": []
+    }
+  ]
+}
