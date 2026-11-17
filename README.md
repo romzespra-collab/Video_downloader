@@ -25,6 +25,9 @@ yt-dlp (PySide6 / Qt6, Windows 10/11).
   «Обновить ffmpeg/ffprobe», «Обновление с GitHub…», текущий лог и папка
   логов, «О программе».
 
+- ⚙ → «🎨 Значок программы…» — свой значок окна, панели задач и ярлыков: встроенная
+  база ~370 значков, поиск в интернете, своя картинка (выбор — `app_icon.json`).
+
 Настройки (стиль окна, токен и автопроверка обновления) хранятся в QSettings.
 Логи — `logs/` (последние 20).
 
@@ -44,6 +47,9 @@ Read-only) на репозиторий Video_downloader — кнопка «?» �
 - `video_downloader.pyw` — программа (журнал изменений — в начале файла).
 - `gh_update.py`, `gh_update_qt.py`, `gh_update_help.py` — обновление с GitHub
   (общий модуль).
+- `app_icon.py`, `app_icon_qt.py`, `app_icon_pack.dat` — окно «Значок программы» (общий
+  модуль; база значков — Material Design Icons, Apache 2.0, и Simple Icons, CC0).
+- `app_icon.json`, `video_downloader.ico` — выбранный значок (создаются, если его выбрали).
 - `test_gh_update.pyw` — тесты модуля обновления (без сети).
 - `release/video_downloader_vX.Y.zip` — архив последней версии.
 - До 2.2 главный файл назывался `video_downloader_app_v2.1.pyw` — если он

@@ -1,6 +1,12 @@
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.13  (PySide6 / Qt6)
+Версия: 2.14  (PySide6 / Qt6)
+
+Изменения 2.14:
+- 🎨 Значок программы: окно выбора (общий модуль app_icon 1.2.0) — ⚙ → «🎨 Значок программы…»;
+  встроенная база ~370 значков (без интернета, поиск по-русски), поиск в интернете, своя
+  картинка; значок — окну, панели задач, video_downloader.ico и ярлыкам на программу. Пока
+  значок не выбирали — всё как было.
 
 Изменения 2.13:
 - 🔄 Обновление с GitHub: общий модуль gh_update 1.5.3 (один на все программы): неполный архив
@@ -47,15 +53,10 @@ Video Downloader Mini — video_downloader.pyw
 - 🔄 Обновление: модуль gh_update 1.1.3 — в облаке анимации значок GitHub над надписью;
   архив докачивается при обрыве.
 
-Изменения 2.4:
-- 🎨 Минимальный QSS на всё приложение, строится из палитры текущей темы и пересобирается
-  при каждой смене темы: рамки и заголовки групп (заголовки «Ссылка», «Доступ к GitHub»,
-  «Что нового в X» больше не обрезаются), поля ввода (фон и цвет текста вместе), полоса прогресса.
-
 Более ранние версии — в истории git.
 """
 
-APP_VERSION = "2.13"
+APP_VERSION = "2.14"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
@@ -1863,6 +1864,12 @@ class VideoDownloaderWindow(QMainWindow):
             add(name)
 
         menu.addSeparator()
+        icon_action = QAction("🎨 Значок программы…", self)
+        icon_action.setToolTip("Свой значок окна, панели задач и ярлыков")
+        icon_action.triggered.connect(self.show_icon_dialog)
+        menu.addAction(icon_action)
+
+        menu.addSeparator()
         formats_action = QAction("🔍 Диагностика форматов", self)
         formats_action.triggered.connect(self.show_formats)
         menu.addAction(formats_action)
@@ -1975,6 +1982,24 @@ class VideoDownloaderWindow(QMainWindow):
         self._quitting = True
         self.close()
         QApplication.quit()
+
+    # ----- значок программы (общий модуль app_icon) -----
+    @property
+    def icons(self):
+        """Значок программы; один на приложение (app.app_icons)."""
+        if getattr(self.app, "app_icons", None) is None:
+            self.app.app_icons = make_icons()
+        return self.app.app_icons
+
+    def show_icon_dialog(self):
+        import app_icon_qt
+
+        def applied(qicon):
+            app_icon_qt.apply_everywhere(qicon)
+            logging.info("🎨 Значок программы изменён")
+        dlg = app_icon_qt.IconDialog(self.icons, self, on_apply=applied)
+        dlg.setAttribute(Qt.WA_DeleteOnClose)
+        dlg.exec()
 
     def show_about(self):
         text = (
@@ -2740,6 +2765,16 @@ class VideoDownloaderWindow(QMainWindow):
         QMessageBox.critical(self, "Ошибка", text + extra)
 
 
+def make_icons():
+    """Значок программы (общий модуль app_icon рядом с программой): выбор — в app_icon.json,
+    video_downloader.ico — рядом с программой. Своего значка у программы не было —
+    «По умолчанию» — значок модуля."""
+    import app_icon
+    target = sys.executable if getattr(sys, "frozen", False) else _app_dir() / "video_downloader.pyw"
+    return app_icon.AppIcon("video_downloader", _app_dir(), title=APP_NAME, target=target,
+                            default=app_icon.DEFAULT)
+
+
 def main():
     _setup_logging()
     _install_crash_hooks()
@@ -2753,6 +2788,14 @@ def main():
         pass
     app.setApplicationName(APP_NAME)
     app.setApplicationVersion(APP_VERSION)
+    # значок выбирали (⚙ → 🎨 Значок программы…) — окну и .ico; не выбирали — как было
+    if any((_app_dir() / n).exists() for n in ("app_icon.json", "app_icon.json.bak")):
+        try:
+            app.app_icons = make_icons()
+            app.app_icons.ensure()
+            app.setWindowIcon(app.app_icons.icon())
+        except Exception as e:
+            logging.warning("Значок программы: %s", e)
     default_style_name = app.style().objectName() if app.style() else ""
     default_palette = QPalette(app.palette())
 
