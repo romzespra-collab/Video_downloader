@@ -3,9 +3,9 @@ Video Downloader Mini — video_downloader.pyw
 Версия: 2.15  (PySide6 / Qt6)
 
 Изменения 2.15:
-- 🧩 Общие модули: app_log 1.1.0 — в журнале пароли и токены скрыты (***), падения — ещё и в
+- 🧩 Общие модули: app_log 1.2.0 — в журнале пароли и токены скрыты (***), падения — ещё и в
   logs/video_downloader_crash.log (появляется только при падении); свой журнал (лог запуска,
-  latest.log, последние 20) — как был. safe_json 1.0.0 — рядом (настройки — в QSettings, не
+  latest.log, последние 20) — как был. safe_json 1.1.0 — рядом (настройки — в QSettings, не
   тронуты). Для разработки — bump_version.py / release.py / check_leaks.py (release.json).
 
 Изменения 2.14:
@@ -485,7 +485,9 @@ def _setup_logging():
     # logs/video_downloader_crash.log (появляется только при падении), пароли и токены
     # в строках журнала скрыты (***).
     try:
-        app_log.setup("video_downloader", log_dir, file=False, qt=False)
+        # корневой журнал (в него пишет вся программа): shared=() — общие модули и так в нём
+        app_log.setup("", log_dir, file_name="video_downloader.log", file=False, qt=False,
+                      shared=())
         app_log.mask_handlers(logging.getLogger())
     except Exception:
         pass
