@@ -3,9 +3,9 @@ Video Downloader Mini — video_downloader.pyw
 Версия: 2.15  (PySide6 / Qt6)
 
 Изменения 2.15:
-- 🧩 Общие модули: app_log 1.2.0 — в журнале пароли и токены скрыты (***), падения — ещё и в
+- 🧩 Общие модули: app_log 1.2.1 — в журнале пароли и токены скрыты (***), падения — ещё и в
   logs/video_downloader_crash.log (появляется только при падении); свой журнал (лог запуска,
-  latest.log, последние 20) — как был. safe_json 1.1.0 — рядом (настройки — в QSettings, не
+  latest.log, последние 20) — как был. safe_json 1.1.1 — рядом (настройки — в QSettings, не
   тронуты). Для разработки — bump_version.py / release.py / check_leaks.py (release.json).
 
 Изменения 2.14:
