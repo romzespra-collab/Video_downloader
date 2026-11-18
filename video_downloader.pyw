@@ -1,6 +1,12 @@
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.15  (PySide6 / Qt6)
+Версия: 2.16  (PySide6 / Qt6)
+
+Изменения 2.16:
+- 🧩 Общий модуль qt_base 1.0.0 — тема и палитра: темы (Fusion Light / Dark, Solarized, Nord,
+  Dracula, Monokai, High Contrast) ставятся общим модулем — стиль Fusion, палитра с нуля
+  (одинаковая у активного и неактивного окна), роли как были; вид прежний (снимки всех тем до /
+  после совпадают).
 
 Изменения 2.15:
 - 🧩 Общие модули: app_log 1.2.1 — в журнале пароли и токены скрыты (***), падения — ещё и в
@@ -51,14 +57,10 @@ Video Downloader Mini — video_downloader.pyw
   при сбое замены не остаётся *.upd, свои файлы пользователя не стираются, та же версия после
   установки не предлагается снова).
 
-Изменения 2.6:
-- 🔄 Обновление с GitHub (gh_update 1.2.0): старый код, которого нет в новой версии, стирается;
-  резервной папки backup больше нет; настройки не трогает.
-
 Более ранние версии — в истории git.
 """
 
-APP_VERSION = "2.15"
+APP_VERSION = "2.16"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
@@ -83,6 +85,7 @@ import threading
 import time
 
 import app_log  # общий модуль (рядом с программой): следы падений, пароли и токены в журнале скрыты
+import qt_base  # общий модуль (рядом с программой): основа окна — Fusion, палитра темы
 
 from PySide6.QtCore import Qt, QThread, Signal, QSettings, QTimer, qInstallMessageHandler
 from PySide6.QtGui import QGuiApplication, QAction, QActionGroup, QPalette, QColor, QIcon, QPixmap, QPainter, QFont
@@ -1130,8 +1133,29 @@ CUSTOM_PALETTES = {
 }
 
 
-def _palette_role(name):
-    return getattr(QPalette.ColorRole, name)
+def _custom_palette(spec, default_palette):
+    """Палитра темы с нуля (общий модуль qt_base) — роли как были: цвета темы; у недоступного —
+    те же (текст не приглушается); рамки и тени — от фона темы; роли, которых у темы нет
+    (подсказка у большинства тем, BrightText, LinkVisited, Accent), — системные (default_palette)."""
+    R, G = QPalette.ColorRole, QPalette.ColorGroup
+
+    def system(role):
+        return default_palette.color(G.Active, role)
+    win = QColor(spec.get("Window", "#888888"))
+    accent = getattr(R, "Accent", None)          # роль Accent — Qt 6.6+
+    pal = qt_base.make_palette(
+        window=spec["Window"], text=spec["WindowText"], base=spec["Base"], alt_base=spec["AlternateBase"],
+        button=spec["Button"], button_text=spec["ButtonText"], highlight=spec["Highlight"],
+        highlighted_text=spec["HighlightedText"], placeholder=spec["PlaceholderText"],
+        tooltip_base=spec.get("ToolTipBase") or system(R.ToolTipBase),
+        tooltip_text=spec.get("ToolTipText") or system(R.ToolTipText),
+        link=spec["Link"], link_visited=system(R.LinkVisited), bright_text=system(R.BrightText),
+        accent=system(accent) if accent is not None else None,
+        disabled_base=spec["Base"], disabled_highlight=spec["Highlight"],
+        light=win.lighter(130), midlight=win.lighter(115), mid=win.darker(115), dark=win.darker(150),
+        shadow=win.darker(200))
+    pal.setColor(G.Disabled, R.PlaceholderText, QColor(spec["PlaceholderText"]))
+    return pal
 
 
 def _app_qss(pal):
@@ -1162,33 +1186,23 @@ QProgressBar::chunk {{ background: {c(R.Highlight)}; border-radius: 3px; }}
 
 
 def apply_style(app, style_name, default_style_name, default_palette):
-    """Применить выбранный стиль ко всему приложению: стиль Qt + палитра + QSS из палитры."""
+    """Применить выбранный стиль ко всему приложению: стиль Qt + палитра + QSS из палитры
+    (палитра и QSS — общим модулем qt_base)."""
+    pal = None
     if style_name == SYSTEM_DEFAULT:
         if default_style_name:
             app.setStyle(default_style_name)
-        app.setPalette(default_palette)
+        pal = default_palette
     elif style_name in QStyleFactory.keys():
         app.setStyle(style_name)
-        app.setPalette(app.style().standardPalette())
+        pal = app.style().standardPalette()
     elif style_name in CUSTOM_PALETTES:
         if "Fusion" in QStyleFactory.keys():
-            app.setStyle("Fusion")
-        spec = CUSTOM_PALETTES[style_name]
-        pal = QPalette()
-        for role_name, hex_color in spec.items():
-            try:
-                role = _palette_role(role_name)
-            except AttributeError:
-                continue
-            pal.setColor(role, QColor(hex_color))
-        # Производные роли для рамок/тени.
-        base = QColor(spec.get("Window", "#888888"))
-        pal.setColor(QPalette.ColorRole.Light,    base.lighter(130))
-        pal.setColor(QPalette.ColorRole.Midlight, base.lighter(115))
-        pal.setColor(QPalette.ColorRole.Mid,      base.darker(115))
-        pal.setColor(QPalette.ColorRole.Dark,     base.darker(150))
-        pal.setColor(QPalette.ColorRole.Shadow,   base.darker(200))
-        app.setPalette(pal)
+            qt_base.setup_app(app, qt_dialogs=False)     # Fusion; окна файлов — как были (системные)
+        pal = _custom_palette(CUSTOM_PALETTES[style_name], default_palette)
+    qt_base.apply_theme(app, palette=pal)
+    # QSS — из палитры, что вышла у приложения (стандартная палитра стиля без своих ролей
+    # приложением не берётся — QSS по ней разошёлся бы с окном)
     app.setStyleSheet(_app_qss(app.palette()))
 
 
