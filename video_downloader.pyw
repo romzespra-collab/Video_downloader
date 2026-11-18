@@ -3,7 +3,7 @@ Video Downloader Mini — video_downloader.pyw
 Версия: 2.16  (PySide6 / Qt6)
 
 Изменения 2.16:
-- 🧩 Общий модуль qt_base 1.0.0 — тема и палитра: темы (Fusion Light / Dark, Solarized, Nord,
+- 🧩 Общий модуль qt_base 1.1.0 — тема и палитра: темы (Fusion Light / Dark, Solarized, Nord,
   Dracula, Monokai, High Contrast) ставятся общим модулем — стиль Fusion, палитра с нуля
   (одинаковая у активного и неактивного окна), роли как были; вид прежний (снимки всех тем до /
   после совпадают).
