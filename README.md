@@ -29,7 +29,8 @@ yt-dlp (PySide6 / Qt6, Windows 10/11).
   база ~370 значков, поиск в интернете, своя картинка (выбор — `app_icon.json`).
 
 Настройки (стиль окна, токен и автопроверка обновления) хранятся в QSettings.
-Логи — `logs/` (последние 20).
+Логи — `logs/` (последние 20; пароли и токены в них скрыты). Только при падении —
+`logs/video_downloader_crash.log` (след необработанной ошибки).
 
 ## Обновление с GitHub
 
@@ -50,7 +51,20 @@ Read-only) на репозиторий Video_downloader — кнопка «?» �
 - `app_icon.py`, `app_icon_qt.py`, `app_icon_pack.dat` — окно «Значок программы» (общий
   модуль; база значков — Material Design Icons, Apache 2.0, и Simple Icons, CC0).
 - `app_icon.json`, `video_downloader.ico` — выбранный значок (создаются, если его выбрали).
+- `app_log.py` — журнал: пароли и токены скрыты, падения — в `logs/video_downloader_crash.log`
+  (общий модуль).
+- `safe_json.py` — надёжная запись JSON-файлов (общий модуль; настройки этой программы —
+  в QSettings, поэтому пока не используется).
+- `bump_version.py`, `release.py`, `check_leaks.py`, `release.json` — для разработки: версия
+  во всех местах, архив в `release/`, поиск утечек (общие утилиты).
 - `test_gh_update.pyw` — тесты модуля обновления (без сети).
 - `release/video_downloader_vX.Y.zip` — архив последней версии.
 - До 2.2 главный файл назывался `video_downloader_app_v2.1.pyw` — если он
   остался в папке, его можно удалить (и поменять ярлыки).
+
+## Для разработки
+
+Новая версия: `python bump_version.py minor -m "что нового"` — версия во всех местах из
+`release.json` и запись «Изменения X.Y» в шапку `video_downloader.pyw`; после commit —
+`python release.py`: архив `release/video_downloader_vX.Y.zip` (старый удаляется, архив
+проверяется на утечки).

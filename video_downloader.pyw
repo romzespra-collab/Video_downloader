@@ -1,6 +1,12 @@
 """
 Video Downloader Mini — video_downloader.pyw
-Версия: 2.14  (PySide6 / Qt6)
+Версия: 2.15  (PySide6 / Qt6)
+
+Изменения 2.15:
+- 🧩 Общие модули: app_log 1.2.1 — в журнале пароли и токены скрыты (***), падения — ещё и в
+  logs/video_downloader_crash.log (появляется только при падении); свой журнал (лог запуска,
+  latest.log, последние 20) — как был. safe_json 1.1.1 — рядом (настройки — в QSettings, не
+  тронуты). Для разработки — bump_version.py / release.py / check_leaks.py (release.json).
 
 Изменения 2.14:
 - 🎨 Значок программы: окно выбора (общий модуль app_icon 1.2.0) — ⚙ → «🎨 Значок программы…»;
@@ -49,14 +55,10 @@ Video Downloader Mini — video_downloader.pyw
 - 🔄 Обновление с GitHub (gh_update 1.2.0): старый код, которого нет в новой версии, стирается;
   резервной папки backup больше нет; настройки не трогает.
 
-Изменения 2.5:
-- 🔄 Обновление: модуль gh_update 1.1.3 — в облаке анимации значок GitHub над надписью;
-  архив докачивается при обрыве.
-
 Более ранние версии — в истории git.
 """
 
-APP_VERSION = "2.14"
+APP_VERSION = "2.15"
 APP_NAME = "Video Downloader Mini"
 APP_AUTHOR = "RomzesPRA-2026"
 
@@ -79,6 +81,8 @@ import platform
 import tempfile
 import threading
 import time
+
+import app_log  # общий модуль (рядом с программой): следы падений, пароли и токены в журнале скрыты
 
 from PySide6.QtCore import Qt, QThread, Signal, QSettings, QTimer, qInstallMessageHandler
 from PySide6.QtGui import QGuiApplication, QAction, QActionGroup, QPalette, QColor, QIcon, QPixmap, QPainter, QFont
@@ -476,6 +480,18 @@ def _setup_logging():
     except Exception:
         pass
 
+    # Общий модуль app_log: свой журнал (лог запуска, latest.log, faulthandler, сообщения Qt)
+    # остаётся как был — app_log без своего файла; падения — ещё и в
+    # logs/video_downloader_crash.log (появляется только при падении), пароли и токены
+    # в строках журнала скрыты (***).
+    try:
+        # корневой журнал (в него пишет вся программа): shared=() — общие модули и так в нём
+        app_log.setup("", log_dir, file_name="video_downloader.log", file=False, qt=False,
+                      shared=())
+        app_log.mask_handlers(logging.getLogger())
+    except Exception:
+        pass
+
     logging.info("=== START %s v%s ===", APP_NAME, APP_VERSION)
     logging.info("app_dir=%s", _app_dir())
     logging.info("cwd=%s", Path.cwd())
@@ -487,7 +503,8 @@ def _setup_logging():
 
 
 def _log_uncaught(exc_type, exc_value, exc_tb):
-    logging.critical("UNCAUGHT EXCEPTION", exc_info=(exc_type, exc_value, exc_tb))
+    # в журнал запуска и в logs/video_downloader_crash.log (общий модуль app_log)
+    app_log.log_exception(exc_type, exc_value, exc_tb, "UNCAUGHT EXCEPTION")
     try:
         sys.__excepthook__(exc_type, exc_value, exc_tb)
     except Exception:
@@ -495,8 +512,8 @@ def _log_uncaught(exc_type, exc_value, exc_tb):
 
 
 def _log_thread_exception(args):
-    logging.critical("UNCAUGHT THREAD EXCEPTION: %s", getattr(args, "thread", None),
-                     exc_info=(args.exc_type, args.exc_value, args.exc_traceback))
+    app_log.log_exception(args.exc_type, args.exc_value, args.exc_traceback,
+                          "UNCAUGHT THREAD EXCEPTION: %s" % (getattr(args, "thread", None),))
 
 
 def _qt_message_handler(mode, context, message):
